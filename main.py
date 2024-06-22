@@ -130,7 +130,7 @@ class CSEOMirror:
         
         #https://telvuevod-secure.akamaized.net/vodhls/vod_player/249/media/882208/1718735452/master.m3u8
         
-        m3u8_To_MP4.multithread_download(download_url,fn=meeting.filename)
+        m3u8_To_MP4.multithread_download(download_url, mp4_file_name=meeting.filename)
         
     def cleanup(self):
         os.remove(self.youtube_token_file)
