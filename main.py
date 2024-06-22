@@ -4,6 +4,7 @@ import os
 import argparse
 import base64
 import json
+import m3u8_To_MP4
 
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
@@ -109,10 +110,11 @@ class CSEOMirror:
             
             n = len(public_meetings)
             for meeting in reversed(soup.find_all("div", class_="summary")):
-                video_id = meeting.find_next("a")['href'].split("/")[-1]
+                video_id = meeting.find_next("a")['href'].split("/")[-1].split("?")[0]
                 name = meeting.find_next("p").string
                 if name in youtube_playlists['recent_videos']:
                   break
+                #pprint("{}----{}".format(name, video_id))
                 public_meetings.insert(n, PublicMeeting(video_id, name, youtube_playlists[k]))
             
             if len(public_meetings) > self.MAX_UPLOAD_COUNT:
@@ -123,25 +125,12 @@ class CSEOMirror:
     def download_meeting(self, meeting: PublicMeeting):
         res = requests.get("{}/{}/media/{}".format(self.url, self.player_id, meeting.video_id))
         soup = BeautifulSoup(res.content, features="html.parser")
-        download_url = soup.find("meta", property="og:video:url")['content'].replace("connect", "videoplayer")
-        download_url = "{}?download_filename={}".format(download_url, meeting.filename)
+        download_url = "https://telvuevod-secure.akamaized.net/vodhls/vod_player/249/media"+meeting.video_id
+        download_url += soup.find("meta", property="og:video:url")['content'].split(meeting.video_id)[1]
         
-        res = requests.get(download_url, stream=True)
-        if res.status_code != 200:
-            return(None)
+        #https://telvuevod-secure.akamaized.net/vodhls/vod_player/249/media/882208/1718735452/master.m3u8
         
-        meeting.filesize = int(res.headers['Content-Length'])
-        with open(meeting.filename, 'wb') as f, tqdm(total = meeting.filesize, desc = "Downloading {}".format(meeting.filename),
-                                                     unit = "B", unit_scale = True, unit_divisor = 1024, leave = True) as bar:
-            i = 0
-            for chunk in res.iter_content(1024*256):
-                if chunk:
-                    i += 1
-                    if not i % 64:
-                        bar.update(1024*256*64)
-                    f.write(chunk)
-                    f.flush()
-            bar.close()
+        m3u8_To_MP4.multithread_download(download_url,fn=meeting.filename)
         
     def cleanup(self):
         os.remove(self.youtube_token_file)

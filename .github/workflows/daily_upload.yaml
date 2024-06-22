@@ -17,6 +17,8 @@ jobs:
           python-version: '3.10' 
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Install ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
       - name: Run code
         env:
           YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
