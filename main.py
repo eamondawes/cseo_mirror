@@ -125,7 +125,7 @@ class CSEOMirror:
     def download_meeting(self, meeting: PublicMeeting):
         res = requests.get("{}/{}/media/{}".format(self.url, self.player_id, meeting.video_id))
         soup = BeautifulSoup(res.content, features="html.parser")
-        download_url = "https://telvuevod-secure.akamaized.net/vodhls/vod_player/249/media"+meeting.video_id
+        download_url = "https://telvuevod-secure.akamaized.net/vodhls/vod_player/249/media/"+meeting.video_id
         download_url += soup.find("meta", property="og:video:url")['content'].split(meeting.video_id)[1]
         
         #https://telvuevod-secure.akamaized.net/vodhls/vod_player/249/media/882208/1718735452/master.m3u8
